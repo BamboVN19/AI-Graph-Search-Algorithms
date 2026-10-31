@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mô Phỏng Thuật Toán A* - Standard</title>
+  <style>
+      :root {
+          --primary: #1e3a8a;
+          --primary-hover: #1d4ed8;
+          --bg: #f8fafc;
+          --card-bg: #ffffff;
+          --border: #cbd5e1;
+          --text: #0f172a;
+          --text-muted: #64748b;
+          --accent: #2563eb;
+          --success: #10b981;
+          --danger: #dc2626;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+      body { background: var(--bg); color: var(--text); padding: 18px; }
+      .header-bar { max-width: 1350px; margin: 0 auto 16px auto; }
+      h1 { font-size: 22px; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+      .subtitle { color: var(--text-muted); font-size: 13px; }
+
+      .main-grid {
+          max-width: 1350px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 400px 1fr;
+          gap: 18px;
+      }
+
+      .card {
+          background: var(--card-bg);
+          border-radius: 10px;
+          border: 1px solid var(--border);
+          padding: 16px;
+          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      }
+      .card h2 {
+          font-size: 15px;
+          color: var(--primary);
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #e2e8f0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      .upload-box {
+          border: 2px dashed #94a3b8;
+          border-radius: 6px;
+          padding: 14px 12px;
+          text-align: center;
+          cursor: pointer;
+          background: #f1f5f9;
+          margin-bottom: 10px;
+          font-size: 12.5px;
+          transition: all 0.2s;
+      }
+      .upload-box:hover, .upload-box.dragover {
+          border-color: var(--primary);
+          background: #e2e8f0;
+      }
+      .upload-box input { display: none; }
+
+      .sample-btn-row {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 10px;
+      }
+
+      .form-group { margin-bottom: 8px; }
+      .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+      .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+      .input-text {
+          width: 100%;
+          padding: 6px 10px;
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: bold;
+          text-transform: uppercase;
+          background: #f1f5f9;
+      }
+
+      textarea {
+          width: 100%;
+          height: 250px;
+          font-family: 'Consolas', monospace;
+          font-size: 12px;
+          padding: 8px;
+          border: 1px solid var(--border);
+          border-radius: 6px;
+          resize: vertical;
+          line-height: 1.4;
+          background: #fafafa;
+      }
+
+      .btn {
+          background: var(--primary);
+          color: white;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 12.5px;
+          transition: all 0.2s;
+      }
+      .btn:hover { background: var(--primary-hover); }
+      .btn-success { background: #10b981; }
+      .btn-secondary { background: #64748b; }
+      .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+
+      .graph-stage {
+          width: 100%;
+          height: 380px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: #ffffff;
+          position: relative;
+          margin-bottom: 14px;
+          overflow: hidden;
+      }
+      svg.graph-svg { width: 100%; height: 100%; }
+
+      .control-bar {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-bottom: 14px;
+      }
+
+      .table-container {
+          max-height: 280px;
+          overflow-y: auto;
+          border: 1px solid #000;
+          margin-bottom: 12px;
+      }
+      table.result-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13px;
+          text-align: center;
+      }
+      table.result-table th, table.result-table td {
+          padding: 8px;
+          border: 1px solid #000;
+      }
+      table.result-table th { background: #f1f5f9; position: sticky; top: 0; }
+      .list-l-cell { text-align: left; font-family: 'Consolas', monospace; font-weight: bold; padding-left: 10px; }
+
+      .path-banner {
+          padding: 10px 14px;
+          background: #ecfdf5;
+          border: 1px solid #6ee7b7;
+          border-radius: 6px;
+          color: #065f46;
+          font-size: 13.5px;
+          font-weight: bold;
+      }
+  </style>
+</head>
+<body>
+
+<div class="header-bar">
+  <h1>
+    <span>Mô Phỏng Thuật Toán A*</span>
+    <span style="font-size: 12px; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 12px;">Tìm kiếm A*</span>
+  </h1>
+  <div class="subtitle">Đồng bộ TTĐ/TTKT trực tiếp - Tự động cập nhật trạng thái nút bấm khi kết thúc</div>
+</div>
+
+<div class="main-grid">
+  <div class="card">
+    <h2><span>1. Dữ Liệu Đầu Vào (Input)</span></h2>
+
+    <div class="upload-box" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <strong style="font-size: 13px;">📁 Bấm để nạp file input.txt</strong>
+      <p id="fileNameStatus" style="color: var(--primary); margin-top: 4px;">Kéo thả file .txt vào khu vực này</p>
+      <input type="file" id="fileInput" accept=".txt" onchange="handleFileUpload(event)">
+    </div>
+
+    <div class="sample-btn-row">
+      <button class="btn btn-outline" style="flex:1;" onclick="downloadSampleData()">📥 Tải File Mẫu (.txt)</button>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>TT Đầu (TTĐ):</label>
+        <input type="text" id="inputStart" class="input-text" readonly>
+      </div>
+      <div class="form-group">
+        <label>TT Đích (TTKT):</label>
+        <input type="text" id="inputGoal" class="input-text" readonly>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Danh sách kề & Heuristic h(u):</label>
+      <textarea id="inputGraphText" spellcheck="false" oninput="applyInput()" placeholder="Nhập cấu hình đồ thị..."></textarea>
+    </div>
+
+    <button class="btn" style="width: 100%;" onclick="applyInput()">Cập Nhật & Tải Lại Đồ Thị</button>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span>2. Trực Quan Hóa & Thực Thi</span>
+      <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="handleDownloadOutput()">💾 Lưu file output.txt</button>
+    </h2>
+
+    <div class="control-bar">
+      <button class="btn btn-success" id="btnStep" onclick="stepSearch()">Chạy Từng Bước (Step)</button>
+      <button class="btn" id="btnAuto" onclick="toggleAutoRun()">Chạy Tự Động (Auto)</button>
+      <button class="btn btn-secondary" onclick="resetSearch()">Đặt Lại</button>
+      <span id="statusText" style="font-size: 12.5px; color: var(--text-muted); margin-left: auto;">Sẵn sàng chạy</span>
+    </div>
+
+    <div class="graph-stage">
+      <svg class="graph-svg" id="graphSvg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+        <g id="edgesGroup"></g>
+        <g id="nodesGroup"></g>
+      </svg>
+    </div>
+
+    <div class="table-container">
+      <table class="result-table">
+        <thead>
+        <tr>
+          <th style="width: 50px;">TT</th>
+          <th style="width: 60px;">TTK</th>
+          <th style="width: 70px;">k(u,v)</th>
+          <th style="width: 60px;">h(v)</th>
+          <th style="width: 60px;">g(v)</th>
+          <th style="width: 60px;">f(v)</th>
+          <th>Danh sách L</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="path-banner" id="pathBanner">
+      <span id="pathResultText">• Đường đi tìm được: Chưa tìm thấy</span>
+    </div>
+  </div>
+</div>
+
+<script>
+    // --- CHỨC NĂNG LƯU FILE CHỌN VỊ TRÍ ---
+    async function saveFileAs(content, suggestedName) {
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: suggestedName,
+                    types: [{
+                        description: 'Text file',
+                        accept: { 'text/plain': ['.txt'] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
+            } catch (err) {
+                if (err.name !== 'AbortError') console.error(err);
+            }
+        } else {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = suggestedName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    }
+
+    const FIXED_LAYOUT = {
+        'A': { x: 380, y: 35 }, 'C': { x: 130, y: 80 }, 'D': { x: 340, y: 130 },
+        'E': { x: 570, y: 110 }, 'F': { x: 780, y: 80 }, 'G': { x: 920, y: 35 },
+        'H': { x: 130, y: 220 }, 'K': { x: 440, y: 220 }, 'I': { x: 750, y: 220 },
+        'B': { x: 580, y: 330 }
+    };
+
+    let graph = {}, heuristics = {}, startNode = 'A', goalNode = 'B';
+    let L = [], gScore = {}, father = {}, isDone = false, autoInterval = null;
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        document.getElementById('fileNameStatus').innerText = `Đã nạp file: ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('inputGraphText').value = e.target.result;
+            applyInput();
+        };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    function downloadSampleData() {
+        const sample = `TTĐ: A\nTTKT: B\nA-14: C(9), D(7), E(13), F(20)\nC-15: H(6)\nD-6: E(4), H(8)\nE-8: K(4), I(3)\nF-7: G(4), I(6)\nG-12:\nH-10: K(5)\nI-4: K(9), B(5)\nK-2: B(6)\nB-0:`;
+        saveFileAs(sample, 'input_astar.txt');
+    }
+
+    function applyInput() {
+        const raw = document.getElementById('inputGraphText').value.trim();
+        if(!raw) return;
+
+        const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        graph = {}; heuristics = {};
+
+        lines.forEach(line => {
+            const up = line.toUpperCase();
+            if (up.startsWith('TTĐ:') || up.startsWith('START:')) {
+                startNode = line.split(':')[1].trim().toUpperCase();
+                document.getElementById('inputStart').value = startNode;
+            } else if (up.startsWith('TTKT:') || up.startsWith('GOAL:')) {
+                goalNode = line.split(':')[1].trim().toUpperCase();
+                document.getElementById('inputGoal').value = goalNode;
+            } else if (line.includes(':')) {
+                const [left, right] = line.split(':');
+                const [uName, hVal] = left.split('-');
+                const u = uName.trim().toUpperCase();
+                heuristics[u] = parseInt(hVal) || 0;
+                graph[u] = [];
+                if (right) {
+                    right.split(',').forEach(n => {
+                        const match = n.match(/([A-Z0-9]+)\s*\((\d+)\)/i);
+                        if (match) graph[u].push({ to: match[1].toUpperCase(), weight: parseInt(match[2]) });
+                    });
+                }
+            }
+        });
+        renderGraph();
+        resetSearch();
+    }
+
+    function renderGraph() {
+        const edgesGroup = document.getElementById('edgesGroup');
+        const nodesGroup = document.getElementById('nodesGroup');
+        edgesGroup.innerHTML = ''; nodesGroup.innerHTML = '';
+
+        Object.keys(graph).forEach(u => {
+            const p1 = FIXED_LAYOUT[u] || {x:50,y:50};
+            graph[u].forEach(edge => {
+                const p2 = FIXED_LAYOUT[edge.to] || {x:50,y:50};
+                edgesGroup.innerHTML += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" id="edge-${u}-${edge.to}" />
+                                          <text x="${(p1.x+p2.x)/2}" y="${(p1.y+p2.y)/2-5}" font-size="11" font-weight="bold" fill="#64748b" text-anchor="middle">${edge.weight}</text>`;
+            });
+        });
+
+        Object.keys(heuristics).forEach(node => {
+            const p = FIXED_LAYOUT[node] || {x:50,y:50};
+            nodesGroup.innerHTML += `<g id="gnode-${node}">
+                <rect x="${p.x-25}" y="${p.y-15}" width="50" height="30" rx="4" fill="white" stroke="#1e3a8a" stroke-width="2" id="node-${node}"/>
+                <text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-size="12" font-weight="bold">${node}-${heuristics[node]}</text>
+            </g>`;
+        });
+    }
+
+    function resetSearch() {
+        isDone = false;
+        if (autoInterval) {
+            clearInterval(autoInterval);
+            autoInterval = null;
+        }
+        document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)';
+        document.getElementById('tableBody').innerHTML = '';
+        document.getElementById('pathResultText').innerHTML = '• Đường đi tìm được: Chưa tìm thấy';
+        document.getElementById('statusText').innerText = 'Sẵn sàng chạy';
+        gScore = { [startNode]: 0 }; father = { [startNode]: null };
+        L = [{ name: startNode, f: heuristics[startNode] }];
+        document.querySelectorAll('rect').forEach(r => r.setAttribute('fill', 'white'));
+        document.querySelectorAll('line').forEach(l => l.setAttribute('stroke', '#cbd5e1'));
+    }
+
+    function stepSearch() {
+        if (isDone || L.length === 0) return;
+        L.sort((a, b) => a.f - b.f);
+        let current = L.shift();
+        let u = current.name;
+        document.getElementById(`node-${u}`).setAttribute('fill', '#dbeafe');
+
+        if (u === goalNode) {
+            isDone = true;
+            let path = []; let temp = goalNode;
+            while(temp) { path.push(temp); temp = father[temp]; }
+            const tr = document.createElement('tr');
+            tr.style.background = '#dcfce7'; tr.style.fontWeight = 'bold';
+            tr.innerHTML = `<td>${u}</td><td colspan="6" style="text-align:left; padding-left:15px;">TTKT/dừng, đường đi ${path.join(' ← ')}, độ dài ${gScore[u]}</td>`;
+            document.getElementById('tableBody').appendChild(tr);
+            finishPath(path);
+            return;
+        }
+
+        let neighbors = graph[u] || [];
+        neighbors.forEach((edge, idx) => {
+            let v = edge.to; let k = edge.weight; let gV = gScore[u] + k; let fV = gV + (heuristics[v] || 0);
+            if (gScore[v] === undefined || gV < gScore[v]) {
+                gScore[v] = gV; father[v] = u;
+                let inL = L.find(i => i.name === v);
+                if (inL) inL.f = fV; else L.push({ name: v, f: fV });
+            }
+            L.sort((a, b) => a.f - b.f);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${idx === 0 ? `<b>${u}</b>` : ''}</td><td>${v}</td><td>${k}</td><td>${heuristics[v]}</td>
+                            <td style="color:${(idx === neighbors.length-1)?'red':'black'}">${gV}</td><td>${fV}</td>
+                            <td class="list-l-cell">${idx === neighbors.length-1 ? L.map(i => `${i.name}${i.f}`).join(',') : ''}</td>`;
+            document.getElementById('tableBody').appendChild(tr);
+        });
+        document.querySelector('.table-container').scrollTop = 999999;
+    }
+
+    function finishPath(path) {
+        document.getElementById('pathResultText').innerHTML = `• Đường đi tìm được: <b>${path.join(' ← ')}</b>. Độ dài: <b>${gScore[goalNode]}</b>`;
+        document.getElementById('statusText').innerText = 'Đã hoàn tất thuật toán!';
+
+        // UPDATE TRẠNG THÁI NÚT AUTO KHI XONG
+        if (autoInterval) {
+            clearInterval(autoInterval);
+            autoInterval = null;
+        }
+        document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)';
+
+        path.forEach((node, i) => {
+            document.getElementById(`node-${node}`).setAttribute('fill', '#22c55e');
+            if(i < path.length - 1) {
+                let edge = document.getElementById(`edge-${path[i+1]}-${path[i]}`);
+                if(edge) { edge.setAttribute('stroke', '#10b981'); edge.setAttribute('stroke-width', '4'); }
+            }
+        });
+    }
+
+    function toggleAutoRun() {
+        if (autoInterval) {
+            clearInterval(autoInterval);
+            autoInterval = null;
+            document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)';
+        } else {
+            if(isDone) resetSearch();
+            document.getElementById('btnAuto').innerText = 'Tạm Dừng';
+            autoInterval = setInterval(() => {
+                if(isDone) {
+                    clearInterval(autoInterval);
+                    autoInterval = null;
+                    document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)';
+                } else {
+                    stepSearch();
+                }
+            }, 800);
+        }
+    }
+
+    function handleDownloadOutput() {
+        let out = "BẢNG VẾT THUẬT TOÁN A*\nTT | TTK | k | h | g | f | L\n";
+        document.querySelectorAll('#tableBody tr').forEach(r => {
+            out += Array.from(r.querySelectorAll('td')).map(td => td.innerText).join(' | ') + "\n";
+        });
+        out += "\n" + document.getElementById('pathResultText').innerText;
+        saveFileAs(out, 'output_astar.txt');
+    }
+
+    window.onload = () => {
+        document.getElementById('inputGraphText').value = `TTĐ: A\nTTKT: B\nA-14: C(9), D(7), E(13), F(20)\nC-15: H(6)\nD-6: E(4), H(8)\nE-8: K(4), I(3)\nF-7: G(4), I(6)\nG-12:\nH-10: K(5)\nI-4: K(9), B(5)\nK-2: B(6)\nB-0:`;
+        applyInput();
+    };
+</script>
+</body>
+</html>

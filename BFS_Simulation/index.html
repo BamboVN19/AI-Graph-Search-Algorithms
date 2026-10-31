@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô Phỏng Thuật Toán Tìm Kiếm BFS - Diamond Layout Sync</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #cbd5e1;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --success: #10b981;
+            --danger: #dc2626;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 18px; }
+        .header-bar { max-width: 1350px; margin: 0 auto 16px auto; }
+        h1 { font-size: 22px; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 13px; }
+
+        .main-grid {
+            max-width: 1350px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .card h2 {
+            font-size: 15px;
+            color: var(--primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #94a3b8;
+            border-radius: 6px;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            background: #f1f5f9;
+            margin-bottom: 12px;
+            font-size: 12.5px;
+            transition: all 0.2s;
+        }
+        .upload-box:hover, .upload-box.dragover {
+            border-color: var(--primary);
+            background: #e2e8f0;
+        }
+        .upload-box input { display: none; }
+
+        .sample-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .input-text {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            background: #f1f5f9; /* Màu nền nhạt cho input readonly */
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            font-family: 'Consolas', monospace;
+            font-size: 12.5px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            resize: vertical;
+            line-height: 1.4;
+            background: #fafafa;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12.5px;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-success { background: #10b981; }
+        .btn-secondary { background: #64748b; }
+        .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+
+        .graph-stage {
+            width: 100%;
+            height: 380px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #ffffff;
+            position: relative;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        svg.graph-svg { width: 100%; height: 100%; }
+
+        .control-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .table-container {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        table.result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            text-align: left;
+        }
+        table.result-table th, table.result-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        table.result-table th {
+            background: #1e3a8a;
+            color: white;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+        }
+        table.result-table tr:nth-child(even) { background: #f8fafc; }
+        table.result-table tr.current-step { background: #e0f2fe; font-weight: bold; }
+
+        .path-banner {
+            padding: 10px 14px;
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+            border-radius: 6px;
+            color: #065f46;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 950px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-bar">
+    <h1>
+        <span>Mô Phỏng BFS Nhóm 1</span>
+        <span id="badgeMode" style="font-size: 12px; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 12px;">Chế độ: BFS</span>
+    </h1>
+    <div class="subtitle">Bố cục ngẫu nhiên theo sơ đồ hình thoi - Đồng bộ TTĐ/TTKT trực tiếp</div>
+</div>
+
+<div class="main-grid">
+    <div class="card">
+        <h2>
+            <span>1. Dữ Liệu Đầu Vào (Input)</span>
+        </h2>
+
+        <div class="upload-box" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <strong style="font-size: 13px;">📁 Bấm để tải lên file input.txt</strong>
+            <p id="fileNameStatus" style="color: var(--primary); margin-top: 4px;">Hoặc kéo thả file vào đây</p>
+            <input type="file" id="fileInput" accept=".txt" onchange="handleFileUpload(event)">
+        </div>
+
+        <div class="sample-btn-row">
+            <button class="btn btn-outline" style="flex:1;" onclick="downloadSampleData()">📥 Tải File Mẫu (.txt)</button>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>TT Đầu (TTĐ):</label>
+                <input type="text" id="inputStart" class="input-text" readonly placeholder="Tự động nhận diện...">
+            </div>
+            <div class="form-group">
+                <label>TT Đích (TTKT):</label>
+                <input type="text" id="inputGoal" class="input-text" readonly placeholder="Tự động nhận diện...">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Nội dung danh sách kề (Sửa trực tiếp TTĐ/TTKT ở đây):</label>
+            <textarea id="inputGraphText" spellcheck="false" oninput="applyInput()" placeholder="TTĐ: A&#10;TTKT: H&#10;A: B, C..."></textarea>
+        </div>
+
+        <button class="btn" style="width: 100%;" onclick="applyInput()">Cập Nhật & Vẽ Đồ Thị</button>
+    </div>
+
+    <div class="card">
+        <h2>
+            <span>2. Trực Quan Hóa & Thực Thi</span>
+            <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="downloadOutputFile()">💾 Lưu file output.txt</button>
+        </h2>
+
+        <div class="control-bar">
+            <button class="btn btn-success" id="btnStep" onclick="stepSearch()">Chạy Từng Bước (Step)</button>
+            <button class="btn" id="btnAuto" onclick="toggleAutoRun()">Chạy Tự Động (Auto)</button>
+            <button class="btn btn-secondary" onclick="resetSearch()">Đặt Lại</button>
+            <span id="statusText" style="font-size: 12.5px; color: var(--text-muted); margin-left: auto;">Sẵn sàng chạy</span>
+        </div>
+
+        <div class="graph-stage">
+            <svg class="graph-svg" id="graphSvg">
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#94a3b8"/>
+                    </marker>
+                    <marker id="arrow-path" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#10b981"/>
+                    </marker>
+                    <filter id="green-glow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#22c55e" flood-opacity="0.75" />
+                    </filter>
+                    <filter id="blue-glow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#0284c7" flood-opacity="0.8" />
+                    </filter>
+                </defs>
+                <g id="edgesGroup"></g>
+                <g id="nodesGroup"></g>
+            </svg>
+        </div>
+
+        <label style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">
+            Bảng liệt kê các bước thực hiện thuật toán (BFS):
+        </label>
+        <div class="table-container">
+            <table class="result-table">
+                <thead>
+                <tr>
+                    <th style="width: 25%;">Phát triển TT (u)</th>
+                    <th style="width: 35%;">Trạng thái kề (v)</th>
+                    <th>Danh sách L</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="path-banner" id="pathBanner">
+            <span>Đường đi từ Trạng thái đầu => Trạng thái kết thúc:</span>
+            <span id="pathResultText" style="color: #059669; font-size: 14px;">Chưa tìm thấy</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let graph = {}, nodeCoords = {}, startNode = '', goalNode = '';
+    let L = [], father = {}, visited = new Set(), isDone = false, autoInterval = null, finalPath = [];
+
+    const SAMPLE_GRAPH_TEXT = "TTĐ: A\nTTKT: H\nA: B, C, D\nB: K\nC: E\nD: F, G\nK:\nE:\nF: H\nG:\nH:";
+
+    async function saveTextFile(content, suggestedName) {
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: suggestedName,
+                    types: [{ description: 'Text file', accept: { 'text/plain': ['.txt'] } }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
+                return true;
+            } catch (err) { if (err.name === 'AbortError') return false; }
+        }
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = suggestedName;
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    function downloadSampleData() { saveTextFile(SAMPLE_GRAPH_TEXT, 'input_mau.txt'); }
+
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(n => dropZone.addEventListener(n, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(n => dropZone.addEventListener(n, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); readAndLoadFile(e.dataTransfer.files[0]); });
+
+    function handleFileUpload(event) { if (event.target.files[0]) readAndLoadFile(event.target.files[0]); }
+
+    function readAndLoadFile(file) {
+        document.getElementById('fileNameStatus').innerText = `Đã nạp file: ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = e => { document.getElementById('inputGraphText').value = e.target.result; applyInput(); };
+        reader.readAsText(file, 'utf-8');
+    }
+
+    function generateDiamondSlots(w, h) {
+        const cx = w / 2, cy = h / 2, dx = 88, dy = 82;
+        return [
+            { x: cx, y: cy - 1.5 * dy }, { x: cx - dx, y: cy - 0.5 * dy },
+            { x: cx, y: cy - 0.5 * dy }, { x: cx + dx, y: cy - 0.5 * dy },
+            { x: cx - 1.5 * dx, y: cy + 0.5 * dy }, { x: cx - 0.5 * dx, y: cy + 0.5 * dy },
+            { x: cx + 0.5 * dx, y: cy + 0.5 * dy }, { x: cx + 1.5 * dx, y: cy + 0.5 * dy },
+            { x: cx, y: cy + 1.5 * dy }
+        ];
+    }
+
+    function applyInput() {
+        const raw = document.getElementById('inputGraphText').value.trim();
+        if (!raw) return;
+
+        const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        let adjLines = [];
+        let detectedStart = '', detectedGoal = '';
+
+        // TỰ ĐỘNG CẬP NHẬT TTĐ VÀ TTKT TỪ TEXTAREA LÊN INPUT BOX
+        lines.forEach(line => {
+            const up = line.toUpperCase();
+            if (up.startsWith('TTĐ:') || up.startsWith('TTD:') || up.startsWith('START:')) {
+                detectedStart = line.split(/[:=]/)[1].trim().toUpperCase();
+                document.getElementById('inputStart').value = detectedStart;
+            } else if (up.startsWith('TTKT:') || up.startsWith('GOAL:') || up.startsWith('END:')) {
+                detectedGoal = line.split(/[:=]/)[1].trim().toUpperCase();
+                document.getElementById('inputGoal').value = detectedGoal;
+            } else { adjLines.push(line); }
+        });
+
+        startNode = document.getElementById('inputStart').value;
+        goalNode = document.getElementById('inputGoal').value;
+
+        if (!startNode || !goalNode) return;
+
+        graph = {}; const allNodes = new Set();
+        allNodes.add(startNode); allNodes.add(goalNode);
+
+        adjLines.forEach(line => {
+            if (!line.includes(':')) return;
+            const parts = line.split(':');
+            const u = parts[0].trim().toUpperCase();
+            allNodes.add(u);
+            let neighbors = parts[1] ? parts[1].split(',').map(s => s.trim().toUpperCase()).filter(Boolean) : [];
+            neighbors.forEach(v => allNodes.add(v));
+            graph[u] = neighbors;
+        });
+
+        allNodes.forEach(node => { if (!graph[node]) graph[node] = []; });
+
+        const svgElem = document.getElementById('graphSvg');
+        const w = svgElem.clientWidth || 750, h = svgElem.clientHeight || 380;
+        const slots = generateDiamondSlots(w, h);
+        for (let i = slots.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [slots[i], slots[j]] = [slots[j], slots[i]];
+        }
+
+        nodeCoords = {};
+        Array.from(allNodes).forEach((node, index) => {
+            nodeCoords[node] = index < slots.length ? slots[index] : { x: 50 + Math.random() * (w - 100), y: 50 + Math.random() * (h - 100) };
+        });
+
+        renderGraphSvg();
+        resetSearch();
+    }
+
+    function renderGraphSvg() {
+        const eg = document.getElementById('edgesGroup'), ng = document.getElementById('nodesGroup');
+        eg.innerHTML = ''; ng.innerHTML = '';
+
+        Object.entries(graph).forEach(([u, neighbors]) => {
+            const p1 = nodeCoords[u];
+            neighbors.forEach(v => {
+                const p2 = nodeCoords[v];
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
+                line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
+                line.setAttribute('stroke', '#cbd5e1'); line.setAttribute('stroke-width', '2');
+                line.setAttribute('marker-end', 'url(#arrow)'); line.id = `edge-${u}-${v}`;
+                eg.appendChild(line);
+            });
+        });
+
+        Object.keys(nodeCoords).forEach(node => {
+            const pt = nodeCoords[node];
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y); c.setAttribute('r', '22');
+            c.setAttribute('fill', '#94a3b8'); c.setAttribute('stroke', '#475569'); c.setAttribute('stroke-width', '3');
+            c.id = `circle-${node}`;
+            const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', pt.x); t.setAttribute('y', pt.y + 6); t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('font-size', '15px'); t.setAttribute('font-weight', 'bold'); t.setAttribute('fill', '#ffffff');
+            t.textContent = node; t.id = `text-${node}`;
+            g.appendChild(c); g.appendChild(t); ng.appendChild(g);
+        });
+    }
+
+    function resetSearch() {
+        clearInterval(autoInterval); autoInterval = null;
+        document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)';
+        if (!startNode || !goalNode) return;
+        L = [startNode]; father = { [startNode]: null }; visited = new Set([startNode]); isDone = false;
+        document.getElementById('tableBody').innerHTML = '';
+        document.getElementById('pathResultText').innerText = 'Đang chờ thực thi...';
+        document.getElementById('statusText').innerText = 'Sẵn sàng. Bấm Step hoặc Auto.';
+        document.querySelectorAll('circle').forEach(c => { c.setAttribute('fill', '#94a3b8'); c.removeAttribute('filter'); });
+        document.querySelectorAll('line').forEach(l => { l.setAttribute('stroke', '#cbd5e1'); l.setAttribute('marker-end', 'url(#arrow)'); });
+        addStepToTable('-', '-', [startNode]);
+    }
+
+    function addStepToTable(u, nStr, listL, isH = false) {
+        const tbody = document.getElementById('tableBody');
+        const tr = document.createElement('tr');
+        if (isH) tr.className = 'current-step';
+        tr.innerHTML = `<td><strong>${u}</strong></td><td>${nStr}</td><td>${listL.length > 0 ? listL.join(', ') : '-'}</td>`;
+        tbody.appendChild(tr);
+        document.querySelector('.table-container').scrollTop = tbody.scrollHeight;
+    }
+
+    function stepSearch() {
+        if (!startNode || !goalNode || isDone) return;
+        if (L.length === 0) {
+            document.getElementById('statusText').innerText = 'Không tìm thấy đích!';
+            addStepToTable('-', 'Không tìm thấy', [], true);
+            isDone = true; return;
+        }
+        const u = L.shift();
+        const cU = document.getElementById(`circle-${u}`);
+        if (cU) { cU.setAttribute('fill', '#0284c7'); cU.setAttribute('filter', 'url(#blue-glow)'); }
+        if (u === goalNode) { addStepToTable(u, 'TTKT -> DỪNG', ['-'], true); finishSuccess(); return; }
+        const neighbors = graph[u] || [];
+        const valid = [];
+        neighbors.forEach(v => { if (!visited.has(v)) { visited.add(v); father[v] = u; valid.push(v); } });
+        L.push(...valid);
+        addStepToTable(u, valid.length > 0 ? valid.join(', ') : '-', [...L], true);
+    }
+
+    function finishSuccess() {
+        isDone = true; clearInterval(autoInterval);
+        document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)';
+        finalPath = []; let curr = goalNode;
+        while (curr !== null) { finalPath.unshift(curr); if (curr === startNode) break; curr = father[curr]; }
+        document.getElementById('pathResultText').innerText = finalPath.join(' -> ');
+        finalPath.forEach((node, idx) => {
+            const c = document.getElementById(`circle-${node}`);
+            if (c) { c.setAttribute('fill', '#22c55e'); c.setAttribute('filter', 'url(#green-glow)'); }
+            if (idx < finalPath.length - 1) {
+                const edge = document.getElementById(`edge-${node}-${finalPath[idx + 1]}`);
+                if (edge) { edge.setAttribute('stroke', '#10b981'); edge.setAttribute('stroke-width', '3.5'); edge.setAttribute('marker-end', 'url(#arrow-path)'); }
+            }
+        });
+    }
+
+    function toggleAutoRun() {
+        if (autoInterval) { clearInterval(autoInterval); autoInterval = null; document.getElementById('btnAuto').innerText = 'Chạy Tự Động (Auto)'; }
+        else {
+            if (isDone) resetSearch();
+            document.getElementById('btnAuto').innerText = 'Tạm Dừng';
+            autoInterval = setInterval(() => { if (isDone) toggleAutoRun(); else stepSearch(); }, 650);
+        }
+    }
+
+    function downloadOutputFile() {
+        const rows = document.querySelectorAll('#tableBody tr');
+        let text = `BẢNG LIỆT KÊ CÁC BƯỚC THỰC HIỆN BFS\nPhát triển TT (u) | Trạng thái kề (v) | Danh sách L\n`;
+        rows.forEach(r => {
+            const cols = r.querySelectorAll('td');
+            if (cols.length >= 3) text += `${cols[0].innerText} | ${cols[1].innerText} | ${cols[2].innerText}\n`;
+        });
+        text += `\nĐƯỜNG ĐI: ${document.getElementById('pathResultText').innerText}\n`;
+        saveTextFile(text, 'output_bfs.txt');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('inputGraphText').value = SAMPLE_GRAPH_TEXT;
+        applyInput();
+    });
+</script>
+</body>
+</html>
